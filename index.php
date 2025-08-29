@@ -238,7 +238,31 @@ $atividades = [
                 <?php endforeach; ?>
             </div>
             
+            <div class="form-group">
+                <label for="observacoes">Observações <span id="observacoes_counter">*300 caracteres restantes.</span></label>
+                <textarea id="observacoes" name="observacoes" maxlength="300" rows="4" oninput="updateCounter('observacoes', 300)"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="intervencoes">Intervenções <span id="intervencoes_counter">300 caracteres restantes.</span></label>
+                <textarea id="intervencoes" name="intervencoes" maxlength="300" rows="4" oninput="updateCounter('intervencoes', 300)"></textarea>
+            </div>
+            
             <button type="submit">Enviar</button>
+            
+            <script>
+            function updateCounter(fieldId, maxLength) {
+                const textarea = document.getElementById(fieldId);
+                const counter = document.getElementById(fieldId + '_counter');
+                const remaining = maxLength - textarea.value.length;
+                counter.textContent = remaining + ' caracteres restantes.';
+                if (remaining < 50) {
+                    counter.style.color = 'red';
+                } else {
+                    counter.style.color = '';
+                }
+            }
+            </script>
         </form>
         
         <?php if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true): ?>

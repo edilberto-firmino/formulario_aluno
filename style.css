@@ -167,12 +167,32 @@ button[type="submit"]:hover {
 }
 
 .survey-navigation button:hover {
-    background-color: #45a049;
+    background-color: #0056b3;
 }
 
 .survey-navigation button[disabled] {
     background-color: #cccccc;
     cursor: not-allowed;
+}
+
+textarea {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    resize: vertical;
+    min-height: 100px;
+}
+
+#observacoes_counter,
+#intervencoes_counter {
+    font-size: 12px;
+    color: #666;
+    margin-left: 5px;
+    font-style: italic;
 }
 
 .actions {

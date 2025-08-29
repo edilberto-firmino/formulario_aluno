@@ -176,6 +176,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $satisfacao_curso = isset($_POST['satisfacao_curso']) ? $_POST['satisfacao_curso'] : '';
     $expectativas = isset($_POST['expectativas']) ? $_POST['expectativas'] : '';
     $recomendacao = isset($_POST['recomendacao']) ? $_POST['recomendacao'] : '';
+    $observacoes = isset($_POST['observacoes']) ? htmlspecialchars($_POST['observacoes']) : '';
+    $intervencoes = isset($_POST['intervencoes']) ? htmlspecialchars($_POST['intervencoes']) : '';
     $data_hora = date('Y-m-d H:i:s');
     
     // Processar atividades
@@ -198,6 +200,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         'Telefone' => $telefone,
         'Curso' => $curso,
         'Disciplina' => $disciplina,
+        'Observações' => $observacoes,
+        'Intervenções' => $intervencoes,
         // 'Satisfação com o Curso' => $satisfacao_curso,
         // 'Expectativas Atendidas' => $expectativas
     );
@@ -225,6 +229,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             'Telefone' => 'Telefone',
             'Curso' => 'Curso',
             'Disciplina' => 'Disciplina',
+            'Observações' => 'Observações',
+            'Intervenções' => 'Intervenções',
             // 'Satisfação com o Curso' => 'Satisfação com o Curso',
             // 'Expectativas Atendidas' => 'Expectativas Atendidas'
         );
