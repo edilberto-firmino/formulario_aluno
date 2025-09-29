@@ -43,6 +43,7 @@ $submission_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
     <a href="index.php" class="btn btn-secondary">Voltar ao Formulário</a>
     <a href="?" class="btn btn-secondary">Lista de Submissões</a>
     <a href="generate_csv.php" class="btn">Gerar Relatório CSV</a>
+    <a href="test_db.php" class="btn">Testar Conexão</a>
     <a href="?logout=1" class="btn btn-secondary" onclick="event.preventDefault(); window.location='index.php?logout=1'">Sair</a>
   </div>
 
