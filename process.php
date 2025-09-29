@@ -157,17 +157,18 @@ $atividades = [
     "Utilizar operadores matemáticos",
     "Utilizar pacote de escritório",
     "Utilizar plataforma Android",
-    "Utilizar plataforma Android SDK",
     "Utilizar plataforma Android Studio",
     "Utilizar programação em bloco com auxílio do Scratch",
     "Utilizar softwares anti-malware",
     "Utilizar Unity como Gamer Engine",
     "Vetorizar imagens"
-];
+    ];
+
+// DB connection helper
+require_once __DIR__ . '/db.php';
 
 // Check if the form was submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Get form data
     $escola = isset($_POST['escola']) ? htmlspecialchars($_POST['escola']) : '';
     $nome = isset($_POST['nome']) ? htmlspecialchars($_POST['nome']) : '';
     $telefone = isset($_POST['telefone']) ? htmlspecialchars($_POST['telefone']) : '';
@@ -192,72 +193,58 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
     
-    // CSV Data - Inicializa com os campos básicos
-    $data = array(
-        'Data' => date('Y-m-d H:i:s'),
-        'Escola' => $escola,
-        'Nome' => $nome,
-        'Telefone' => $telefone,
-        'Curso' => $curso,
-        'Disciplina' => $disciplina,
-        'Observações' => $observacoes,
-        'Intervenções' => $intervencoes,
-        // 'Satisfação com o Curso' => $satisfacao_curso,
-        // 'Expectativas Atendidas' => $expectativas
-    );
-    
-    // Adicionar respostas das atividades com os nomes das atividades como chaves
-    foreach ($atividades as $index => $atividade) {
-        $data[$atividade] = isset($atividades_respostas[$index]) ? $atividades_respostas[$index] : '';
-    }
-    
-    // Open the file for appending
-    $file = 'dados_alunos.csv';
-    $file_exists = file_exists($file);
-    $handle = fopen($file, 'a');
-    
-    // If file is empty, add UTF-8 BOM and header
-    if (!$file_exists || filesize($file) == 0) {
-        // Add UTF-8 BOM for proper Excel encoding
-        fputs($handle, "\xEF\xBB\xBF");
-        
-        // Criar array associativo com todos os cabeçalhos
-        $header = array(
-            'Data' => 'Data',
-            'Escola' => 'Escola',
-            'Nome' => 'Nome',
-            'Telefone' => 'Telefone',
-            'Curso' => 'Curso',
-            'Disciplina' => 'Disciplina',
-            'Observações' => 'Observações',
-            'Intervenções' => 'Intervenções',
-            // 'Satisfação com o Curso' => 'Satisfação com o Curso',
-            // 'Expectativas Atendidas' => 'Expectativas Atendidas'
-        );
-        
-        // Adicionar cabeçalhos das atividades
-        foreach ($atividades as $atividade) {
-            $header[$atividade] = $atividade;
+    // Persistir no banco de dados
+    try {
+        $pdo = get_pdo();
+        $pdo->beginTransaction();
+
+        // Garantir que a base/schema já foi criada conforme schema.sql
+        // Inserir submissão principal
+        $stmt = $pdo->prepare('INSERT INTO submissions (escola, nome, telefone, curso, disciplina, observacoes, intervencoes) VALUES (?, ?, ?, ?, ?, ?, ?)');
+        $stmt->execute([$escola, $nome, $telefone, $curso, $disciplina, $observacoes, $intervencoes]);
+        $submission_id = (int)$pdo->lastInsertId();
+
+        // Preparar statements reutilizáveis
+        // Upsert de atividade por título para obter ID (funciona com UNIQUE em titulo)
+        $stmtUpsertActivity = $pdo->prepare('INSERT INTO activities (titulo) VALUES (:titulo) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id)');
+        $stmtInsertResp = $pdo->prepare('INSERT INTO submission_activity_responses (submission_id, activity_id, resposta) VALUES (:submission_id, :activity_id, :resposta)');
+
+        foreach ($atividades as $index => $titulo) {
+            $resposta = $atividades_respostas[$index] ?? '';
+            if ($resposta === '') {
+                // Não gravar quando não há resposta
+                continue;
+            }
+
+            // Garantir/obter activity_id
+            $stmtUpsertActivity->execute([':titulo' => $titulo]);
+            $activity_id = (int)$pdo->lastInsertId();
+
+            // Gravar resposta
+            $stmtInsertResp->execute([
+                ':submission_id' => $submission_id,
+                ':activity_id' => $activity_id,
+                ':resposta' => $resposta,
+            ]);
         }
-        
-        // Escrever cabeçalhos
-        fputcsv($handle, array_keys($header), ';');
+
+        $pdo->commit();
+
+        // Redirect back with success message
+        header('Location: index.php?status=success');
+        exit();
+    } catch (Throwable $e) {
+        if (isset($pdo) && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        // Opcional: log de erro em arquivo local (não interrompe fluxo)
+        // error_log('Erro ao salvar no banco: ' . $e->getMessage());
+        header('Location: index.php?error=db');
+        exit();
     }
-    
-    // Escrever os dados, garantindo a mesma ordem dos cabeçalhos
-    $row = [];
-    foreach ($header as $key => $value) {
-        $row[] = isset($data[$key]) ? $data[$key] : '';
-    }
-    fputcsv($handle, $row, ';');
-    fclose($handle);
-    
-    // Redirect back with success message
-    header('Location: index.php?status=success');
-    exit();
-} else {
+}
+ else {
     // If not a POST request, redirect to the form
     header('Location: index.php');
     exit();
 }
-?>

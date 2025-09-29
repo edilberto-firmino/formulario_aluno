@@ -267,6 +267,7 @@ $atividades = [
         
         <?php if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true): ?>
         <div class="actions">
+            <a href="responses.php" class="btn">Ver Respostas</a>
             <a href="generate_csv.php" class="btn">Gerar Relatório CSV</a>
             <a href="?logout=1" class="btn btn-logout">Sair</a>
         </div>
